@@ -100,4 +100,6 @@ return function (App $app) {
         $response->getBody()->write(json_encode(['message' => 'Author deleted']));
         return $response->withHeader('Content-Type', 'application/json');
     });
+
+    
 };
