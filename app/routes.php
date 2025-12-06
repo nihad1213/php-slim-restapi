@@ -24,4 +24,13 @@ return function (App $app) {
         $group->get('', ListUsersAction::class);
         $group->get('/{id}', ViewUserAction::class);
     });
+
+    $app->get('/test-db', function ($request, $response) {
+        $db = $this->get('db');
+        $stmt = $db->query("SELECT 1");
+        $data = $stmt->fetch();
+
+        $response->getBody()->write(json_encode($data));
+        return $response->withHeader('Content-Type', 'application/json');
+    });
 };

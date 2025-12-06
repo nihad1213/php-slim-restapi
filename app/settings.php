@@ -21,6 +21,16 @@ return function (ContainerBuilder $containerBuilder) {
                     'path' => isset($_ENV['docker']) ? 'php://stdout' : __DIR__ . '/../logs/app.log',
                     'level' => Logger::DEBUG,
                 ],
+
+                'db' => [
+                    'host' => '127.0.0.1',
+                    'port' => '3307',
+                    'dbname' => 'php-slim-restapi',
+                    'user' => 'root',
+                    'pass' => '',
+                    'driver' => 'mysql',
+                    'charset' => 'utf8mb4',
+                ],
             ]);
         }
     ]);
