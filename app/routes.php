@@ -32,14 +32,6 @@ return function (App $app) {
         return $response->withHeader('Content-Type', 'application/json');
     });
 
-    $app->get('/books', function ($request, $response) {
-        $repo = $this->get(BookRepository::class);
-        $data = $repo->getAll();
-
-        $response->getBody()->write(json_encode($data));
-        return $response->withHeader('Content-Type', 'application/json');
-    });
-
     $app->get('/authors/{id}', function (Request $request, Response $response, array $args) {
         $repo = $this->get(AuthorRepository::class);
         $author = $repo->getById((int) $args['id']);
@@ -101,5 +93,82 @@ return function (App $app) {
         return $response->withHeader('Content-Type', 'application/json');
     });
 
-    
+    $app->get('/books', function (Request $request, Response $response) {
+        $repo = $this->get(BookRepository::class);
+        $data = $repo->getAll();
+        $response->getBody()->write(json_encode($data));
+        return $response->withHeader('Content-Type', 'application/json');
+    });
+
+    $app->get('/books/{id}', function (Request $request, Response $response, array $args) {
+        $repo = $this->get(BookRepository::class);
+        $book = $repo->getById((int) $args['id']);
+        
+        if (!$book) {
+            $response->getBody()->write(json_encode(['error' => 'Book not found']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+        }
+        
+        $response->getBody()->write(json_encode($book));
+        return $response->withHeader('Content-Type', 'application/json');
+    });
+
+    $app->get('/authors/{id}/books', function (Request $request, Response $response, array $args) {
+        $repo = $this->get(BookRepository::class);
+        $books = $repo->getByAuthorId((int) $args['id']);
+        $response->getBody()->write(json_encode($books));
+        return $response->withHeader('Content-Type', 'application/json');
+    });
+
+    $app->post('/books', function (Request $request, Response $response) {
+        $data = $request->getParsedBody();
+        
+        if (empty($data['title']) || empty($data['author_id']) || empty($data['year'])) {
+            $response->getBody()->write(json_encode([
+                'error' => 'Title, author_id, and year are required'
+            ]));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+        }
+        
+        $repo = $this->get(BookRepository::class);
+        $id = $repo->create($data);
+        
+        $response->getBody()->write(json_encode(['id' => $id, 'message' => 'Book created']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(201);
+    });
+
+    $app->put('/books/{id}', function (Request $request, Response $response, array $args) {
+        $data = $request->getParsedBody();
+        
+        if (empty($data['title']) || empty($data['author_id']) || empty($data['year'])) {
+            $response->getBody()->write(json_encode([
+                'error' => 'Title, author_id, and year are required'
+            ]));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+        }
+        
+        $repo = $this->get(BookRepository::class);
+        $success = $repo->update((int) $args['id'], $data);
+        
+        if (!$success) {
+            $response->getBody()->write(json_encode(['error' => 'Failed to update book']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+        }
+        
+        $response->getBody()->write(json_encode(['message' => 'Book updated']));
+        return $response->withHeader('Content-Type', 'application/json');
+    });
+
+    $app->delete('/books/{id}', function (Request $request, Response $response, array $args) {
+        $repo = $this->get(BookRepository::class);
+        $success = $repo->delete((int) $args['id']);
+        
+        if (!$success) {
+            $response->getBody()->write(json_encode(['error' => 'Failed to delete book']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+        }
+        
+        $response->getBody()->write(json_encode(['message' => 'Book deleted']));
+        return $response->withHeader('Content-Type', 'application/json');
+    });
 };
