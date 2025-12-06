@@ -39,4 +39,65 @@ return function (App $app) {
         $response->getBody()->write(json_encode($data));
         return $response->withHeader('Content-Type', 'application/json');
     });
+
+    $app->get('/authors/{id}', function (Request $request, Response $response, array $args) {
+        $repo = $this->get(AuthorRepository::class);
+        $author = $repo->getById((int) $args['id']);
+        
+        if (!$author) {
+            $response->getBody()->write(json_encode(['error' => 'Author not found']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+        }
+        
+        $response->getBody()->write(json_encode($author));
+        return $response->withHeader('Content-Type', 'application/json');
+    });
+
+    $app->post('/authors', function (Request $request, Response $response) {
+        $data = $request->getParsedBody();
+        
+        if (empty($data['name'])) {
+            $response->getBody()->write(json_encode(['error' => 'Name is required']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+        }
+        
+        $repo = $this->get(AuthorRepository::class);
+        $id = $repo->create($data);
+        
+        $response->getBody()->write(json_encode(['id' => $id, 'message' => 'Author created']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(201);
+    });
+
+    $app->put('/authors/{id}', function (Request $request, Response $response, array $args) {
+        $data = $request->getParsedBody();
+        
+        if (empty($data['name'])) {
+            $response->getBody()->write(json_encode(['error' => 'Name is required']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+        }
+        
+        $repo = $this->get(AuthorRepository::class);
+        $success = $repo->update((int) $args['id'], $data);
+        
+        if (!$success) {
+            $response->getBody()->write(json_encode(['error' => 'Failed to update author']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+        }
+        
+        $response->getBody()->write(json_encode(['message' => 'Author updated']));
+        return $response->withHeader('Content-Type', 'application/json');
+    });
+
+    $app->delete('/authors/{id}', function (Request $request, Response $response, array $args) {
+        $repo = $this->get(AuthorRepository::class);
+        $success = $repo->delete((int) $args['id']);
+        
+        if (!$success) {
+            $response->getBody()->write(json_encode(['error' => 'Failed to delete author']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+        }
+        
+        $response->getBody()->write(json_encode(['message' => 'Author deleted']));
+        return $response->withHeader('Content-Type', 'application/json');
+    });
 };
