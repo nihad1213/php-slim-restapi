@@ -15,16 +15,6 @@ return function (App $app) {
         return $response;
     });
 
-    $app->get('/', function (Request $request, Response $response) {
-        $response->getBody()->write('Hello world!');
-        return $response;
-    });
-
-    $app->group('/users', function (Group $group) {
-        $group->get('', ListUsersAction::class);
-        $group->get('/{id}', ViewUserAction::class);
-    });
-
     $app->get('/test-db', function ($request, $response) {
         $db = $this->get('db');
         $stmt = $db->query("SELECT 1");
